@@ -1,2 +1,18 @@
 #!/usr/bin/env bash
 echo "pre-push hook"
+#!/usr/bin/env bash
+set -e
+
+PROTECTED_BRANCHES=("main" "master")
+
+CURRENT_BRANCH=$(git branch --show-current)
+
+for b in "${PROTECTED_BRANCHES[@]}"; do
+  if [[ "$CURRENT_BRANCH" == "$b" ]]; then
+    echo "❌ Direct push blocked to protected branch: $b"
+    echo "Use develop + Pull Request workflow"
+    exit 1
+  fi
+done
+
+exit 0

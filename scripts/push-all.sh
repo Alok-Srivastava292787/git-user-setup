@@ -1,63 +1,63 @@
 #!/usr/bin/env bash
-echo "Push all script with safety controls"
-#!/usr/bin/env bash
 set -e
 
 ############################################
-# CONFIG – EDIT IF REQUIRED
+# CONFIG
 ############################################
 WORK_REMOTE="origin-work"
 PERSONAL_REMOTE="origin-personal"
-ALLOWED_BRANCHES=("main" "develop")
+DRY_RUN=false
 
 ############################################
-# HELPERS
+# PARSE FLAGS
 ############################################
-current_branch=$(git branch --show-current)
+if [[ "$1" == "--dry-run" ]]; then
+  DRY_RUN=true
+fi
 
-fail() {
-  echo "❌ ERROR: $1"
+############################################
+# DETECT BRANCH
+############################################
+CURRENT_BRANCH=$(git branch --show-current)
+
+if [[ -z "$CURRENT_BRANCH" ]]; then
+  echo "❌ No active branch"
   exit 1
-}
-
-############################################
-# SAFETY CHECKS
-############################################
-if [[ -z "$current_branch" ]]; then
-  fail "No active branch detected"
 fi
 
-branch_allowed=false
-for b in "${ALLOWED_BRANCHES[@]}"; do
-  [[ "$current_branch" == "$b" ]] && branch_allowed=true
-done
-
-if [[ "$branch_allowed" != true ]]; then
-  fail "Branch '$current_branch' is not allowed for push"
+############################################
+# SAFETY: PROTECTED BRANCH
+############################################
+if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
+  echo "❌ Direct push blocked to $CURRENT_BRANCH"
+  echo "Use PR workflow"
+  exit 1
 fi
 
-git remote get-url "$WORK_REMOTE" &>/dev/null || \
-  fail "Missing remote: $WORK_REMOTE"
-
-git remote get-url "$PERSONAL_REMOTE" &>/dev/null || \
-  fail "Missing remote: $PERSONAL_REMOTE"
+############################################
+# VERIFY REMOTES
+############################################
+git remote get-url "$WORK_REMOTE"      >/dev/null
+git remote get-url "$PERSONAL_REMOTE"  >/dev/null
 
 ############################################
-# CONFIRMATION
+# EXECUTE
 ############################################
-echo "Branch       : $current_branch"
-echo "Work repo    : $WORK_REMOTE"
-echo "Personal repo: $PERSONAL_REMOTE"
-read -p "Proceed with push to BOTH repositories? (yes/no): " CONFIRM
-[[ "$CONFIRM" == "yes" ]] || fail "Aborted by user"
+echo "Branch       : $CURRENT_BRANCH"
+echo "Work Repo    : $WORK_REMOTE"
+echo "Personal Repo: $PERSONAL_REMOTE"
 
-############################################
-# PUSH
-############################################
-echo "🚀 Pushing to work repo..."
-git push "$WORK_REMOTE" "$current_branch"
+if $DRY_RUN; then
+  echo "✅ DRY‑RUN MODE"
+  echo "git push $WORK_REMOTE $CURRENT_BRANCH"
+  echo "git push $PERSONAL_REMOTE $CURRENT_BRANCH"
+  exit 0
+fi
 
-echo "🚀 Pushing to personal repo..."
-git push "$PERSONAL_REMOTE" "$current_branch"
+read -p "Proceed pushing to both repos? (yes/no): " CONFIRM
+[[ "$CONFIRM" == "yes" ]] || exit 1
 
-echo "✅ Push completed safely"
+git push "$WORK_REMOTE" "$CURRENT_BRANCH"
+git push "$PERSONAL_REMOTE" "$CURRENT_BRANCH"
+
+echo "✅ Push complete"

@@ -1,2 +1,28 @@
 #!/usr/bin/env bash
 echo "pre-commit hook"
+#!/usr/bin/env bash
+set -e
+
+############################################
+# CONFIG – REQUIRED AUTHOR EMAIL
+############################################
+ALLOWED_EMAIL="work@company.com"
+
+CURRENT_EMAIL=$(git config user.email || true)
+
+if [[ -z "$CURRENT_EMAIL" ]]; then
+  echo "❌ user.email not set"
+  exit 1
+fi
+
+if [[ "$CURRENT_EMAIL" != "$ALLOWED_EMAIL" ]]; then
+  echo "❌ Commit blocked"
+  echo "Expected email : $ALLOWED_EMAIL"
+  echo "Current email  : $CURRENT_EMAIL"
+  echo
+  echo "Fix with:"
+  echo "git config user.email \"$ALLOWED_EMAIL\""
+  exit 1
+fi
+
+exit 0
