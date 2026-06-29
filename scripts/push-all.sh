@@ -57,7 +57,9 @@ fi
 read -p "Proceed pushing to both repos? (yes/no): " CONFIRM
 [[ "$CONFIRM" == "yes" ]] || exit 1
 
+echo "🚀 Pushing to $WORK_REMOTE..."
 git push "$WORK_REMOTE" "$CURRENT_BRANCH"
+echo "🚀 Pushing to $PERSONAL_REMOTE..."
 git push "$PERSONAL_REMOTE" "$CURRENT_BRANCH"
 
 echo "✅ Push complete"

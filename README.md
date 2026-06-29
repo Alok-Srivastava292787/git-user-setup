@@ -386,7 +386,8 @@ One repo = One SSH remote
 
 ***
 
-🏁 Final Architecture
+# 🏁 Final Architecture
+```
 Local Repo
  ├── origin-work     (github-work)
  └── origin-personal (github-personal)
@@ -394,8 +395,8 @@ Local Repo
 SSH Config
  ├── github-work     → id_ed25519_work
  └── github-personal → id_ed25519_personal
-
-📦 Final Template Structure
+```
+# 📦 Final Template Structure
 ```
 git-multiaccount-starter/
 │
